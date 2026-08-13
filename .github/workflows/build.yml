@@ -20,20 +20,22 @@ jobs:
 
     - name: Unzip and Build
       run: |
-        # إنشاء مجلد وفك الـ ZIP فيه
         mkdir -p source_code
         ZIP_FILE=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
         unzip -q "$ZIP_FILE" -d source_code
         
-        # البحث عن مكان تواجد ملف gradlew الحقيقي داخل المجلدات المفكوكة
-        GRADLEW_PATH=$(find source_code -name "gradlew" -type f | head -n 1)
-        PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+        # البحث عن المجلد الذي يحتوي على ملف الإعدادات الرئيسي للمشروع
+        PROJECT_FILE=$(find source_code -name "settings.gradle.kts" -o -name "settings.gradle" | head -n 1)
+        PROJECT_DIR=$(dirname "$PROJECT_FILE")
         
-        echo "Found gradlew at: $GRADLEW_PATH"
         echo "Project directory is: $PROJECT_DIR"
-        
-        # إعطاء صلاحيات التنفيذ وبناء التطبيق
         cd "$PROJECT_DIR"
+        
+        # التأكد من وجود gradlew أو توليده إذا لم يكن موجوداً
+        if [ ! -f "gradlew" ]; then
+          gradle wrapper
+        fi
+        
         chmod +x gradlew
         ./gradlew assembleDebug
 
