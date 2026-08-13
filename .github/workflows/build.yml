@@ -45,4 +45,3 @@ jobs:
         name: app-debug
         path: |
           source_code/**/app/build/outputs/apk/debug/app-debug.apk
-
