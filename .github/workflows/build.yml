@@ -20,23 +20,26 @@ jobs:
 
     - name: Unzip and Build
       run: |
-        # العثور على ملف الـ ZIP المرفوع تلقائياً
+        # إنشاء مجلد وفك الـ ZIP فيه
+        mkdir -p source_code
         ZIP_FILE=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
-        echo "Using zip file: $ZIP_FILE"
-        
-        # فك ضغطه في مجلد مؤقت
-        mkdir source_code
         unzip -q "$ZIP_FILE" -d source_code
         
-        # الدخول إلى المجلد المفقوك وضبط الصلاحيات
-        cd source_code
-        chmod +x gradlew || true
+        # البحث عن مكان تواجد ملف gradlew الحقيقي داخل المجلدات المفكوكة
+        GRADLEW_PATH=$(find source_code -name "gradlew" -type f | head -n 1)
+        PROJECT_DIR=$(dirname "$GRADLEW_PATH")
         
-        # بناء التطبيق
+        echo "Found gradlew at: $GRADLEW_PATH"
+        echo "Project directory is: $PROJECT_DIR"
+        
+        # إعطاء صلاحيات التنفيذ وبناء التطبيق
+        cd "$PROJECT_DIR"
+        chmod +x gradlew
         ./gradlew assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
-        path: source_code/app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          source_code/**/app/build/outputs/apk/debug/app-debug.apk
